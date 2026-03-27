@@ -236,6 +236,15 @@ impl PayrollStream {
         Ok(())
     }
 
+    /// Get the current retention policy duration in seconds
+    /// Returns the configured retention seconds, or defaults to 30 days if not set
+    pub fn get_retention_secs(env: Env) -> u64 {
+        env.storage()
+            .instance()
+            .get(&DataKey::RetentionSecs)
+            .unwrap_or(DEFAULT_RETENTION_SECS)
+    }
+
     /// Set early cancellation fee as basis points (max 1000 = 10%)
     /// Only admin can call this function
     pub fn set_early_cancel_fee(env: Env, fee_bps: u32) -> Result<(), QuipayError> {

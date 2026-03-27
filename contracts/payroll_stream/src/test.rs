@@ -2067,6 +2067,24 @@ fn test_batch_create_with_mixed_cliff_times() {
 //     assert_eq!(worker3_streams.len(), 1);
 // }
 
+#[test]
+fn test_set_and_get_retention_secs() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let (client, _, _, _, _) = setup(&env);
+
+    // Default retention is 30 days (30 * 24 * 60 * 60 = 2592000 seconds)
+    assert_eq!(client.get_retention_secs(), 2592000u64);
+
+    // Admin can change it
+    client.set_retention_secs(&86400u64); // 1 day
+    assert_eq!(client.get_retention_secs(), 86400u64);
+
+    // Admin can set it to 0 (immediate cleanup)
+    client.set_retention_secs(&0u64);
+    assert_eq!(client.get_retention_secs(), 0u64);
+}
+
 // ============================================================================
 // Two-Step Admin Transfer Tests
 // ============================================================================
