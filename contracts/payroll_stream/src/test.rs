@@ -2080,9 +2080,21 @@ fn test_set_and_get_retention_secs() {
     client.set_retention_secs(&86400u64); // 1 day
     assert_eq!(client.get_retention_secs(), 86400u64);
 
-    // Admin can set it to 0 (immediate cleanup)
-    client.set_retention_secs(&0u64);
-    assert_eq!(client.get_retention_secs(), 0u64);
+    // Admin can set it to a large value
+    client.set_retention_secs(&31536000u64); // 1 year
+    assert_eq!(client.get_retention_secs(), 31536000u64);
+}
+
+#[test]
+fn test_set_retention_secs_rejects_zero() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let (client, _, _, _, _) = setup(&env);
+
+    // Attempting to set retention to 0 should fail
+    let result = client.try_set_retention_secs(&0u64);
+    let err = result.unwrap_err().unwrap();
+    assert_eq!(err, QuipayError::InvalidAmount);
 }
 
 // ============================================================================

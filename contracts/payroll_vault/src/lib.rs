@@ -997,7 +997,7 @@ impl PayrollVault {
             while j < signers.len() {
                 let signer_j = signers.get(j).ok_or(QuipayError::SignerNotFound)?;
                 if signer_i == signer_j {
-                    return Err(QuipayError::DuplicateSigner);
+                    return Err(QuipayError::AlreadySigner);
                 }
                 j += 1;
             }

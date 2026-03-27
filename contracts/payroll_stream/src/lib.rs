@@ -1,6 +1,6 @@
 #![no_std]
 use core::convert::TryFrom;
-use quipay_common::{QuipayError, require};
+use quipay_common::{QuipayError, require, require_positive_amount};
 use soroban_sdk::{
     Address, BytesN, Env, IntoVal, Symbol, Vec, contract, contractimpl, contracttype,
 };
@@ -230,6 +230,7 @@ impl PayrollStream {
             .get(&DataKey::Admin)
             .ok_or(QuipayError::NotInitialized)?;
         admin.require_auth();
+        require_positive_amount!(retention_secs);
         env.storage()
             .instance()
             .set(&DataKey::RetentionSecs, &retention_secs);
