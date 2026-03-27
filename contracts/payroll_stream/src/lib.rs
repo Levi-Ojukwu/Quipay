@@ -1694,7 +1694,7 @@ impl PayrollStream {
 
         // Check if there's already a pending upgrade
         if env.storage().instance().has(&DataKey::PendingUpgrade) {
-            return Err(QuipayError::Custom);
+            return Err(QuipayError::UpgradeAlreadyPending);
         }
 
         let pending_upgrade = PendingUpgrade {
@@ -1730,11 +1730,11 @@ impl PayrollStream {
             .storage()
             .instance()
             .get(&DataKey::PendingUpgrade)
-            .ok_or(QuipayError::Custom)?;
+            .ok_or(QuipayError::NoPendingUpgrade)?;
 
         let now = env.ledger().timestamp();
         if now < pending_upgrade.execute_after {
-            return Err(QuipayError::Custom);
+            return Err(QuipayError::TimelockNotExpired);
         }
 
         // Perform the upgrade
@@ -1766,7 +1766,7 @@ impl PayrollStream {
             .storage()
             .instance()
             .get(&DataKey::PendingUpgrade)
-            .ok_or(QuipayError::Custom)?;
+            .ok_or(QuipayError::NoPendingUpgrade)?;
 
         // Clear pending upgrade
         env.storage().instance().remove(&DataKey::PendingUpgrade);

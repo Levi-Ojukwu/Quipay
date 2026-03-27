@@ -153,7 +153,7 @@ impl PayrollVault {
 
         // Check if there's already a pending upgrade
         if e.storage().persistent().has(&StateKey::PendingUpgrade) {
-            return Err(QuipayError::Custom);
+            return Err(QuipayError::UpgradeAlreadyPending);
         }
 
         let pending_upgrade = PendingUpgrade {
@@ -193,11 +193,11 @@ impl PayrollVault {
             .storage()
             .persistent()
             .get(&StateKey::PendingUpgrade)
-            .ok_or(QuipayError::Custom)?;
+            .ok_or(QuipayError::NoPendingUpgrade)?;
 
         let now = e.ledger().timestamp();
         if now < pending_upgrade.execute_after {
-            return Err(QuipayError::Custom);
+            return Err(QuipayError::TimelockNotExpired);
         }
 
         // Get current version for event
@@ -250,7 +250,7 @@ impl PayrollVault {
             .storage()
             .persistent()
             .get(&StateKey::PendingUpgrade)
-            .ok_or(QuipayError::Custom)?;
+            .ok_or(QuipayError::NoPendingUpgrade)?;
 
         // Clear pending upgrade
         e.storage().persistent().remove(&StateKey::PendingUpgrade);
