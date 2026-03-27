@@ -275,7 +275,7 @@ fn test_stream_withdraw_and_cleanup() {
     client.init(&admin);
     client.set_vault(&vault_id);
     client.set_withdrawal_cooldown(&0u64);
-    client.set_retention_secs(&0u64);
+    client.set_retention_secs(&1u64);
 
     env.ledger().with_mut(|li| {
         li.timestamp = 0;
@@ -810,7 +810,7 @@ fn test_cleanup_removes_from_indexes() {
     client.init(&admin);
     client.set_vault(&vault_id);
     client.set_withdrawal_cooldown(&0u64);
-    client.set_retention_secs(&0u64);
+    client.set_retention_secs(&1u64);
 
     env.ledger().with_mut(|li| {
         li.timestamp = 0;
@@ -2101,16 +2101,18 @@ fn test_set_retention_secs_rejects_zero() {
 fn test_get_vault() {
     let env = Env::default();
     env.mock_all_auths();
-    let (client, _, _, _, _) = setup(&env);
 
-    // Initially no vault is set
+    let admin = Address::generate(&env);
+    let contract_id = env.register_contract(None, PayrollStream);
+    let client = PayrollStreamClient::new(&env, &contract_id);
+    client.init(&admin);
+
+    // Before any vault is set, should return None
     assert_eq!(client.get_vault(), None);
 
-    // Set a vault
-    let vault_address = Address::generate(&env);
+    // Set a vault and verify it comes back correctly
+    let vault_address = env.register_contract(None, dummy_vault::DummyVault);
     client.set_vault(&vault_address);
-
-    // Now get_vault should return the set address
     assert_eq!(client.get_vault(), Some(vault_address));
 }
 
