@@ -299,6 +299,10 @@ fn test_stream_withdraw_and_cleanup() {
     let stream = client.get_stream(&stream_id).unwrap();
     assert!(stream.withdrawn_amount >= stream.total_amount);
 
+    // cleanup allowed after retention window (1 second) has passed
+    env.ledger().with_mut(|li| {
+        li.timestamp = 11;
+    });
     client.cleanup_stream(&stream_id);
     assert!(client.get_stream(&stream_id).is_none());
 }
@@ -836,6 +840,9 @@ fn test_cleanup_removes_from_indexes() {
     });
     client.withdraw(&id1, &worker);
 
+    env.ledger().with_mut(|li| {
+        li.timestamp = 11;
+    });
     client.cleanup_stream(&id1);
 
     let emp_ids = client.get_streams_by_employer(&employer, &None, &None);
