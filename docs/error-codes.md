@@ -62,7 +62,7 @@ if (error.code === 1006) {
 | 1034                   | `InvalidThreshold`        | Multi-sig threshold is zero or exceeds the signer count.                 | Set a threshold in the range `[1, signer_count]`.                       |
 | 1035                   | `InsufficientSignatures`  | Not enough signers have approved the operation.                          | Collect additional signatures before submitting.                        |
 | 1036                   | `NoSigners`               | Multi-sig operation attempted with an empty signer set.                  | Add at least one signer before requiring multi-sig.                     |
-| 1039                   | `DuplicateSigner`         | The same signer address appears more than once in a batch.               | Remove duplicates from the signer list.                                 |
+| 1039                   | `UpgradeAlreadyPending`   | A contract upgrade is already pending.                                   | Cancel or execute the pending upgrade before starting a new one.        |
 | **Admin & Governance** |                           |                                                                          |
 | 1030                   | `NoPendingAdmin`          | `accept_admin` was called but no admin transfer is in progress.          | Initiate admin transfer with `propose_admin` first.                     |
 | 1031                   | `NotPendingAdmin`         | Caller is not the address that was proposed as new admin.                | The correct pending admin must call `accept_admin`.                     |
@@ -75,8 +75,14 @@ if (error.code === 1006) {
 | 1029                   | `BatchTooLarge`           | Batch operation exceeds the maximum allowed batch size.                  | Split the batch into smaller chunks.                                    |
 | 1037                   | `WithdrawalCooldown`      | Withdrawal was attempted before the cooldown period elapsed.             | Wait for the cooldown window to pass before retrying.                   |
 | 1038                   | `GracePeriodActive`       | A grace-period timelock is still active (e.g. for upgrades or drains).   | Wait for the grace period to expire.                                    |
-| 1040                   | `NoDrainPending`          | `execute_drain` was called but no drain was initiated.                   | Call `initiate_drain` first, then wait for the timelock.                |
-| 1041                   | `DrainTimelockActive`     | The drain timelock has not yet expired.                                  | Wait for the timelock duration to elapse before executing.              |
+| 1040                   | `NoPendingUpgrade`        | `execute_upgrade` or `cancel_upgrade` was called with no pending upgrade.| Propose an upgrade before attempting to execute or cancel it.           |
+| 1041                   | `TimelockNotExpired`      | The upgrade timelock has not yet expired.                                | Wait for the upgrade timelock to elapse before executing.               |
+| 1042                   | `StreamNotPaused`         | An operation requires the stream to be paused, but it is not paused.     | Pause the stream first or call a method valid for active streams.       |
+| 1043                   | `DuplicateSigner`         | The same signer address appears more than once in a batch.               | Remove duplicates from the signer list.                                 |
+| 1044                   | `NoDrainPending`          | `execute_drain` was called but no drain was initiated.                   | Call `initiate_drain` first, then wait for the timelock.                |
+| 1045                   | `DrainTimelockActive`     | The drain timelock has not yet expired.                                  | Wait for the timelock duration to elapse before executing.              |
+| 1046                   | `StreamLimitReached`      | The employer has reached the maximum allowed active streams.             | Close or cancel an existing stream before creating another.             |
+| 1047                   | `DurationTooShort`        | The stream duration is less than the configured minimum.                 | Increase the stream duration to meet the minimum requirement.           |
 | **Miscellaneous**      |                           |                                                                          |
 | 1015                   | `TransferFailed`          | An underlying Stellar asset transfer failed.                             | Check recipient account exists and can receive the token.               |
 | 1016                   | `UpgradeFailed`           | WASM upgrade invocation failed.                                          | Verify the new WASM hash and that the caller is the admin.              |
