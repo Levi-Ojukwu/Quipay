@@ -353,6 +353,12 @@ impl PayrollStream {
         Ok(())
     }
 
+    /// Get the currently configured vault address
+    /// Returns Some(address) when vault is set, None when not configured
+    pub fn get_vault(env: Env) -> Option<Address> {
+        env.storage().instance().get(&DataKey::Vault)
+    }
+
     pub fn get_admin(env: Env) -> Result<Address, QuipayError> {
         env.storage()
             .instance()

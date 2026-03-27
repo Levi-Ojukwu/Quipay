@@ -2097,6 +2097,23 @@ fn test_set_retention_secs_rejects_zero() {
     assert_eq!(err, QuipayError::InvalidAmount);
 }
 
+#[test]
+fn test_get_vault() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let (client, _, _, _, _) = setup(&env);
+
+    // Initially no vault is set
+    assert_eq!(client.get_vault(), None);
+
+    // Set a vault
+    let vault_address = Address::generate(&env);
+    client.set_vault(&vault_address);
+
+    // Now get_vault should return the set address
+    assert_eq!(client.get_vault(), Some(vault_address));
+}
+
 // ============================================================================
 // Two-Step Admin Transfer Tests
 // ============================================================================

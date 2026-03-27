@@ -45,7 +45,7 @@ fn test_duplicate_signers_rejected() {
     assert!(result.is_err());
     match result {
         Err(Ok(err)) => {
-            assert_eq!(err, QuipayError::DuplicateSigner);
+            assert_eq!(err, QuipayError::AlreadySigner);
         }
         _ => panic!("Expected DuplicateSigner error"),
     }
