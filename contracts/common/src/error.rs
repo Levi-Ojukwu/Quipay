@@ -50,6 +50,9 @@ pub enum QuipayError {
     NoPendingUpgrade = 1040,
     TimelockNotExpired = 1041,
     StreamNotPaused = 1042,
+    DuplicateSigner = 1039,
+    NoDrainPending = 1040,
+    DrainTimelockActive = 1041,
     Custom = 1999,
 }
 
