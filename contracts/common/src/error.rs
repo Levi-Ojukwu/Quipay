@@ -128,6 +128,8 @@ pub enum QuipayError {
     NoPendingUpgrade = 1040,
     TimelockNotExpired = 1041,
 
+    /// An operation requires the stream to be paused, but it is not paused.
+
     // Stream state
     StreamNotPaused = 1042,
 
