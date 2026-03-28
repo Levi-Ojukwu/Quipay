@@ -108,7 +108,7 @@ fn test_cancel_upgrade() {
     // Verify it's gone
     assert!(client.get_pending_upgrade().is_none());
 
-    // Try to execute - should fail as no upgrade is pending
+    // Try to execute - should fail as no upgrade is pending.
     let result = client.try_execute_upgrade();
     assert_eq!(result, Err(Ok(QuipayError::NoPendingUpgrade)));
 }
