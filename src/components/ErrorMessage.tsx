@@ -12,7 +12,7 @@ interface ErrorMessageProps {
  * ErrorMessage Component
  * ──────────────────────
  * Displays an inline error alert with appropriate styling and icons based on
- * the error type and severity. Supports an optional retry action.
+ * the error type and severity. Supports an optional retry action..
  */
 export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   error,
