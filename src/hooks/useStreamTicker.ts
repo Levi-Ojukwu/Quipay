@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { WorkerStream } from "./useStreams";
 
 /** Stellar uses 7 decimal places (10^7 stroops = 1 token unit). */
@@ -36,6 +36,65 @@ export interface StreamTickerResult {
   paused: boolean;
 }
 
+const EMPTY_RESULT: Omit<StreamTickerResult, "paused"> = {
+  snapshots: [],
+  totalEarned: 0,
+  totalFlowRate: 0,
+  activeCount: 0,
+};
+
+const computeTickerResult = (
+  streams: WorkerStream[],
+  nowSec: number,
+  paused: boolean,
+): StreamTickerResult => {
+  if (streams.length === 0) {
+    return {
+      ...EMPTY_RESULT,
+      paused,
+    };
+  }
+
+  let totalEarned = 0;
+  let totalFlowRate = 0;
+  let activeCount = 0;
+
+  const snapshots: StreamTickSnapshot[] = streams.map((stream) => {
+    const flowRateUnits = Number(stream.flowRate);
+    const totalAmountUnits = Number(stream.totalAmount);
+    const elapsed = Math.max(0, nowSec - stream.startTime);
+    const earned = Math.min(elapsed * flowRateUnits, totalAmountUnits);
+    const isComplete = earned >= totalAmountUnits;
+    const progress = totalAmountUnits > 0 ? earned / totalAmountUnits : 0;
+
+    totalEarned += earned;
+
+    if (!isComplete) {
+      totalFlowRate += flowRateUnits;
+      activeCount += 1;
+    }
+
+    return {
+      id: stream.id,
+      employerName: stream.employerName,
+      tokenSymbol: stream.tokenSymbol,
+      earned,
+      flowRate: flowRateUnits,
+      totalAmount: totalAmountUnits,
+      progress,
+      isComplete,
+    };
+  });
+
+  return {
+    snapshots,
+    totalEarned,
+    totalFlowRate,
+    activeCount,
+    paused,
+  };
+};
+
 /**
  * Client-side real-time ticker for payroll streams.
  *
@@ -57,85 +116,25 @@ export const useStreamTicker = (
   streams: WorkerStream[],
   intervalMs = 100,
 ): StreamTickerResult => {
-  const [result, setResult] = useState<StreamTickerResult>({
-    snapshots: [],
-    totalEarned: 0,
-    totalFlowRate: 0,
-    activeCount: 0,
-    paused: false,
-  });
-
-  const pausedRef = useRef(false);
-
-  const compute = useCallback(() => {
-    const nowSec = Date.now() / 1000;
-    let totalEarned = 0;
-    let totalFlowRate = 0;
-    let activeCount = 0;
-
-    const snapshots: StreamTickSnapshot[] = streams.map((stream) => {
-      const flowRateUnits = Number(stream.flowRate);
-      const totalAmountUnits = Number(stream.totalAmount);
-      const elapsed = Math.max(0, nowSec - stream.startTime);
-      const earned = Math.min(elapsed * flowRateUnits, totalAmountUnits);
-      const isComplete = earned >= totalAmountUnits;
-      const progress =
-        totalAmountUnits > 0 ? earned / totalAmountUnits : 0;
-
-      totalEarned += earned;
-
-      if (!isComplete) {
-        totalFlowRate += flowRateUnits;
-        activeCount += 1;
-      }
-
-      return {
-        id: stream.id,
-        employerName: stream.employerName,
-        tokenSymbol: stream.tokenSymbol,
-        earned,
-        flowRate: flowRateUnits,
-        totalAmount: totalAmountUnits,
-        progress,
-        isComplete,
-      };
-    });
-
-    setResult({
-      snapshots,
-      totalEarned,
-      totalFlowRate,
-      activeCount,
-      paused: pausedRef.current,
-    });
-  }, [streams]);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const [paused, setPaused] = useState(() =>
+    typeof document === "undefined" ? false : document.hidden,
+  );
 
   useEffect(() => {
-    if (streams.length === 0) {
-      setResult({
-        snapshots: [],
-        totalEarned: 0,
-        totalFlowRate: 0,
-        activeCount: 0,
-        paused: false,
-      });
-      return;
-    }
-
     const handleVisibilityChange = () => {
-      pausedRef.current = document.hidden;
-      if (!document.hidden) {
-        compute();
+      const isHidden = document.hidden;
+      setPaused(isHidden);
+
+      if (!isHidden) {
+        setNowMs(Date.now());
       }
     };
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    compute();
-
     const id = setInterval(() => {
-      if (!pausedRef.current) {
-        compute();
+      if (!document.hidden) {
+        setNowMs(Date.now());
       }
     }, intervalMs);
 
@@ -143,9 +142,12 @@ export const useStreamTicker = (
       clearInterval(id);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [streams, intervalMs, compute]);
+  }, [intervalMs]);
 
-  return result;
+  return useMemo(
+    () => computeTickerResult(streams, nowMs / 1000, paused),
+    [streams, nowMs, paused],
+  );
 };
 
 /**
