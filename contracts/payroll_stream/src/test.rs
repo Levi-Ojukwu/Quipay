@@ -1039,7 +1039,7 @@ fn test_create_stream_blocked_when_treasury_insolvent() {
 }
 
 // ---------------------------------------------------------------------------
-// Withdrawal edge cases
+// Withdrawal edge cases.
 // ---------------------------------------------------------------------------
 
 #[test]
