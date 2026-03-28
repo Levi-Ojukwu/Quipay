@@ -74,14 +74,14 @@ fn test_upgrade_timelock_enforcement() {
     let v2_wasm_hash = BytesN::from_array(&env, &[1u8; 32]);
     client.propose_upgrade(&v2_wasm_hash);
 
-    // Try to execute immediately - should fail with Custom (timelock not met)
+    // Try to execute immediately - should fail with TimelockNotExpired
     let result = client.try_execute_upgrade();
-    assert_eq!(result, Err(Ok(QuipayError::Custom)));
+    assert_eq!(result, Err(Ok(QuipayError::TimelockNotExpired)));
 
     // Wait 24 hours (halfway)
     env.ledger().set_timestamp(env.ledger().timestamp() + 24 * 60 * 60);
     let result = client.try_execute_upgrade();
-    assert_eq!(result, Err(Ok(QuipayError::Custom)));
+    assert_eq!(result, Err(Ok(QuipayError::TimelockNotExpired)));
 
     // Wait remaining 48 hours total
     env.ledger().set_timestamp(env.ledger().timestamp() + 24 * 60 * 60);
@@ -110,5 +110,5 @@ fn test_cancel_upgrade() {
 
     // Try to execute - should fail as no upgrade is pending
     let result = client.try_execute_upgrade();
-    assert_eq!(result, Err(Ok(QuipayError::Custom)));
+    assert_eq!(result, Err(Ok(QuipayError::NoPendingUpgrade)));
 }
