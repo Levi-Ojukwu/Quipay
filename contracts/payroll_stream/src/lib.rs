@@ -2291,7 +2291,6 @@ impl PayrollStream {
         );
     }
 
-    pub(crate) fn vested_amount_at(stream: &Stream, timestamp: u64) -> i128 {
     /// Calculate the vested amount at a specific timestamp, accounting for pauses.
     ///
     /// This function implements the core vesting logic with support for pause/resume cycles.
@@ -2330,7 +2329,7 @@ impl PayrollStream {
     ///
     /// ### Returns
     /// The amount vested at the given timestamp (capped at `total_amount`)
-    fn vested_amount_at(stream: &Stream, timestamp: u64) -> i128 {
+    pub(crate) fn vested_amount_at(stream: &Stream, timestamp: u64) -> i128 {
         let is_closed = Self::is_closed(stream);
         let mut effective_ts = if is_closed {
             core::cmp::min(timestamp, stream.closed_at)

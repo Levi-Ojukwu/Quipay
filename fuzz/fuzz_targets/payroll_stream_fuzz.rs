@@ -144,6 +144,7 @@ fuzz_target!(|actions: Vec<StreamAction>| {
                     &start_ts,
                     &end_ts,
                     &None,
+                    &None,
                 );
 
                 let expected_valid =

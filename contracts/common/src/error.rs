@@ -137,6 +137,10 @@ pub enum QuipayError {
     DuplicateSigner = 1043,
     NoDrainPending = 1044,
     DrainTimelockActive = 1045,
+    /// The employer has reached the maximum allowed active streams.
+    StreamLimitReached = 1046,
+    /// The stream duration is less than the configured minimum.
+    DurationTooShort = 1047,
 
     Custom = 1999,
 }
